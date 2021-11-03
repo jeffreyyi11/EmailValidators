@@ -1,0 +1,192 @@
+import React, { useState } from 'react';
+import { useRouter } from 'next/router';
+
+const EmailBlaster = () => {
+	const [address, setAddress] = useState('');
+	const [subject, setSubject] = useState('');
+	const [message, setMessage] = useState('');
+	const [from, setFrom] = useState('');
+	const [fromError, setFromError] = useState(null);
+	const [emailError, setEmailError] = useState(null);
+	const [messageError, setMessageError] = useState(null);
+	const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/;
+	const router = useRouter();
+	let emailData;
+
+	async function sendEmails(e) {
+		e.preventDefault();
+		emailData = {
+			address: address,
+			subject: subject,
+			message: message,
+			from: from,
+		};
+
+		// From Validations
+		if (emailData.from.length < 1) {
+			setFromError('Please include a description of who this email is from to send to your homeowners.');
+		}
+		if (emailData.from.length > 0) {
+			setFromError(null);
+		}
+
+
+		//Message Validations
+		if (emailData.message.length < 1) {
+			setMessageError('Please include a message to send to your homeowners.');
+		}
+		if (emailData.message.length > 0) {
+			setMessageError(null);
+		}
+
+
+		// To Validations
+		// Check if any email at all
+		if (emailData.address.length < 1) {
+			return setEmailError('Please include recipients for this email.');
+		}
+		//separate email list by commas and trim white space
+		var emails = emailData.address.trim().split(',');
+		for (const e in emails) {
+			emails[e] = emails[e].trim();
+		}
+		// Check if they are appropriate emails
+		for (const e in emails) {
+			if (emails[e].includes(' ')) {
+				return setEmailError(
+					'Please ensure all emails are separated by commas.',
+				);
+			}
+			if (emails[e].includes('<') || emails[e].includes('>')) {
+				return setEmailError(
+					'"<" and ">" are not valid characters for emails (look at "' + emails[e] + '").',
+				);
+			}
+			if (!emailRegex.test(emails[e])) {
+				return setEmailError(
+					'Please ensure all emails are valid (look at "' + emails[e] + '").',
+				);
+			}
+			else {
+				setEmailError(null);
+			}
+		}
+
+		if (fromError === null && messageError === null && emailError === null) {
+			await fetch('/api/sendEmail', {
+				method: 'post',
+				body: JSON.stringify(emailData),
+			})
+				.then(() => {
+					setAddress('');
+					setSubject('');
+					setMessage('');
+					setEmailError('');
+					setMessageError('');
+					router.push('/success');
+				})
+				.catch((err) => console.log(err));
+		}
+	}
+
+	return (
+		<div className='container'>
+			<div className='section-title'>
+				<span>Get In Touch</span>
+				<h2>
+					<b>Email</b> Blast
+				</h2>
+				<p>Email all the homeowners within your respective communities.</p>
+			</div>
+
+			<div className='contact-form'>
+				<form onSubmit={sendEmails} id='contactForm'>
+					<div className='row'>
+						<div className='col-md-12'>
+							<div className='form-group'>
+								<input
+									type='text'
+									onChange={(e) => setFrom(e.target.value)}
+									value={from}
+									placeholder='Display Name: (i.e. Community Manager, Board Member)'
+									name='from'
+									className='form-control'></input>
+								{fromError ? (
+									<div className='danger'>
+										<br />
+										{fromError}
+									</div>
+								) : (
+									''
+								)}
+							</div>
+						</div>
+
+						<div className='col-md-12'>
+							<div className='form-group'>
+								<textarea
+									onChange={(e) => setAddress(e.target.value)}
+									value={address}
+									placeholder='Recipients: Separate emails with commas (i.e., "info@powerstonepm.com, helpdesk@powerstonepm.com")'
+									name='address'
+									id='address'
+									className='form-control'
+									rows='3'></textarea>
+								{emailError ? (
+									<div className='danger'>
+										<br />
+										{emailError}
+									</div>
+								) : (
+									''
+								)}
+							</div>
+						</div>
+
+						<div className='col-md-12'>
+							<div className='form-group'>
+								<input
+									onChange={(e) => setSubject(e.target.value)}
+									value={subject}
+									type='text'
+									name='subject'
+									className='form-control'
+									id='name'
+									placeholder='Subject'
+								/>
+							</div>
+						</div>
+
+						<div className='col-md-12'>
+							<div className='form-group'>
+								<textarea
+									onChange={(e) => setMessage(e.target.value)}
+									value={message}
+									placeholder='Message'
+									name='message'
+									id='message'
+									className='form-control'
+									rows='10'></textarea>
+							</div>
+							{messageError ? (
+									<div className='danger'>
+										<br />
+										{messageError}
+									</div>
+								) : (
+									''
+								)}
+						</div>
+
+						<div className='col-md-12 text-center'>
+							<button type='submit' className='btn btn-primary'>
+								Send Email
+							</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	);
+};
+export default EmailBlaster;
