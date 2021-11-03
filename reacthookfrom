@@ -1,0 +1,181 @@
+import React, {useState} from 'react';
+import { useForm } from 'react-hook-form';
+import { useRouter } from 'next/router';
+
+const ReactHookFormEmail = () => {
+    const [emailErrors, setEmailErrors] = useState('');
+	const {
+		register,
+		reset,
+		formState: { errors },
+		handleSubmit,
+	} = useForm();
+	let emailData;
+	const router = useRouter();
+    const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/;
+	const resetForm = () => {
+		reset();
+	};
+
+	// emails === []
+	const emailValidator = (address) => {
+		let emails = address.trim().split(',');
+        for (const e in emails) {
+            emails[e] = emails[e].trim();
+        }
+        for (const e in emails) {
+            if (emails[e].includes(' ')) {
+				setEmailErrors('Please ensure all emails are separated by commas');
+                console.log(emailErrors);
+                return false
+			}
+			if (emails[e].includes('<') || emails[e].includes('>')) {
+				setEmailErrors('"<" and ">" are not valid email characters (look at ' + emails[e] + ").");
+                console.log(emailErrors);
+                return false
+			}
+			if (!emailRegex.test(emails[e])) {
+				setEmailErrors('Please ensure all emails are valid (look at ' + emails[e] + ').');
+                console.log(emailErrors);
+                return false;
+			}
+        }
+        return true;
+	};
+
+	const submitEmail = async (data) => {
+		emailData = {
+			address: data.address,
+			subject: data.subject,
+			message: data.message,
+			from: data.from,
+		};
+
+		await fetch('/api/sendEmail', {
+			method: 'post',
+			body: JSON.stringify(emailData),
+		})
+			.then(() => {
+				reset();
+				router.push('/success');
+			})
+			.catch((err) => {
+				console.log(err);
+				alert('Something went wrong, please try again later.');
+			});
+	};
+
+	return (
+		<>
+			{' '}
+			<form method='/post' onSubmit={handleSubmit(submitEmail)}>
+				<div className='container'>
+					<div className='section-title'>
+						<span>Get In Touch</span>
+						<h2>
+							<b>Email</b> Blast
+						</h2>
+						<p>Email all the homeowners within your respective communities.</p>
+					</div>
+					<div className='contact-form'>
+						<div className='row'>
+							<p className='col-lg-6'>
+								<label className='input-required' htmlFor='from'>
+									Display Name:
+								</label>
+								<input
+									placeholder='From: (i.e. Community Manager, Board Member)'
+									name='from'
+									className='form-control'
+									type='text'
+									{...register('from', {
+										required: 'Please enter a from value.',
+									})}
+								/>
+								{errors.from && errors.from.type === 'required' && (
+									<small className='form-errors'>{errors.from.message}</small>
+								)}
+							</p>
+							<p className='col-md-12'>
+								<label className='input-required' htmlFor='address'>
+									Address:
+								</label>
+								<textarea
+									id='email'
+									name='address'
+									placeholder='Recipients: Separate emails with commas (i.e., "info@powerstonepm.com, helpdesk@powerstonepm.com")'
+									rows='3'
+									type='text'
+									className='form-control'
+									{...register('address', {
+										required: 'Please enter your address',
+                                        validate: emailValidator,
+									})}
+								/>
+								{errors.address && (
+									<small className='form-errors'>
+										{errors.address.message}
+									</small>
+								)}
+                                {
+                                    errors.address && errors.address.type === 'validate' && (
+                                        <small className='form-errors'>{emailErrors}</small>
+                                    )
+                                }
+							</p>
+							<p className='col-md-12'>
+								<label className='input-required' htmlFor='subject'>
+									Subject::{' '}
+								</label>
+								<input
+									name='subject'
+									type='text'
+									className='form-control'
+									{...register('subject', {
+										required: 'Please enter a subject',
+									})}
+								/>
+								{errors.subject && (
+									<small className='form-errors'>
+										{errors.subject.message}
+									</small>
+								)}
+							</p>
+							<p className='col-md-12'>
+								<label className='input-required' htmlFor='message'>
+									Message:{' '}
+								</label>
+								<textarea
+									name='message'
+									type='text'
+									rows='20'
+									className='form-control'
+									{...register('message', {
+										required: 'Please enter a message',
+									})}
+								/>
+								{errors.message && (
+									<small className='form-errors'>
+										{errors.message.message}
+									</small>
+								)}
+							</p>
+							<div className='col-md-12 text-center'>
+								<button
+									type='submit'
+									className='col-sm-8 col-12 service-btn btn btn-primary'>
+									Submit
+								</button>
+								<button onClick={resetForm} className='btn btn-danger'>
+									Reset
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</form>
+		</>
+	);
+};
+
+export default ReactHookFormEmail;
