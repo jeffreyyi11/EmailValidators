@@ -20,22 +20,22 @@ const ReactHookFormEmail = () => {
 	// emails === []
 	const emailValidator = (address) => {
 		let emails = address.trim().split(',');
-        for (const e in emails) {
-            emails[e] = emails[e].trim();
+        for (const email in emails) {
+            emails[email] = emails[email].trim();
         }
-        for (const e in emails) {
+        for (const email in emails) {
             if (emails[e].includes(' ')) {
 				setEmailErrors('Please ensure all emails are separated by commas');
                 console.log(emailErrors);
                 return false
 			}
-			if (emails[e].includes('<') || emails[e].includes('>')) {
-				setEmailErrors('"<" and ">" are not valid email characters (look at ' + emails[e] + ").");
+			if (emails[emails].includes('<') || emails[emails].includes('>')) {
+				setEmailErrors('"<" and ">" are not valid email characters (look at ' + emails[emails] + ").");
                 console.log(emailErrors);
                 return false
 			}
-			if (!emailRegex.test(emails[e])) {
-				setEmailErrors('Please ensure all emails are valid (look at ' + emails[e] + ').');
+			if (!emailRegex.test(emails[emails])) {
+				setEmailErrors('Please ensure all emails are valid (look at ' + emails[emails] + ').');
                 console.log(emailErrors);
                 return false;
 			}
