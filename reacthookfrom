@@ -24,18 +24,18 @@ const ReactHookFormEmail = () => {
             emails[email] = emails[email].trim();
         }
         for (const email in emails) {
-            if (emails[e].includes(' ')) {
+            if (emails[email].includes(' ')) {
 				setEmailErrors('Please ensure all emails are separated by commas');
                 console.log(emailErrors);
                 return false
 			}
-			if (emails[emails].includes('<') || emails[emails].includes('>')) {
-				setEmailErrors('"<" and ">" are not valid email characters (look at ' + emails[emails] + ").");
+			if (emails[email].includes('<') || emails[email].includes('>')) {
+				setEmailErrors('"<" and ">" are not valid email characters (look at ' + emails[email] + ").");
                 console.log(emailErrors);
                 return false
 			}
-			if (!emailRegex.test(emails[emails])) {
-				setEmailErrors('Please ensure all emails are valid (look at ' + emails[emails] + ').');
+			if (!emailRegex.test(emails[email])) {
+				setEmailErrors('Please ensure all emails are valid (look at ' + emails[email] + ').');
                 console.log(emailErrors);
                 return false;
 			}
